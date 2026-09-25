@@ -1,9 +1,13 @@
-#UNIFORM COST SEARCH WITH NON-UNIFORM ACTION COSTS
-#Extend the solution to support different cost models for the river crossing puzzle.
+#AZHAR ABBAS SYED, ARIANA SOOKOO
+#CMPSC 442- Artificial Intelligence
+#Project 1
+#----------------------------------------------------------------------------
+#QUESTION 3: A* Search with Admissible Heuristics
 
 #imports
 import heapq
 import math
+
 
 moves=[(1,0), (0,1) , (2,0), (1,1), (0,2)]  # no (0,0) because boat cannot be empty
 
@@ -13,26 +17,26 @@ def action_cost(move, boat, cost_model):
 
     if cost_model == "A":
         return ((2 * m) + c)
-
+    
     elif cost_model == "B":
         if boat == "L":
-           return 2
+           return 2 
         else:
            return 1
-
+        
 #check whether state follows puzzle rules
 def stateFollow(state):
     #missionary on left
-    ml=state[0]
+    ml = state[0]
     #cannibals on left
-    cl=state[1]
+    cl = state[1]
     #missionary on right
-    mr=state[2]
+    mr = state[2]
     #cannibals on right
-    cr=state[3]
+    cr =state[3]
 
     #check if each count is between 0 and 3
-    for i in (ml,cl,mr,cr):
+    for i in (ml, cl, mr, cr):
         if i < 0 or i > 3:
             return False
 
@@ -46,29 +50,29 @@ def stateFollow(state):
 
     return True  #if everything is correct
 
-#Find the state with one legal move
+#find the state with one legal move
 def findLegal(state):
-    ml=state[0]
-    cl=state[1]
-    mr=state[2]
-    cr=state[3]
-    boat=state[4]
+    ml = state[0]
+    cl = state[1]
+    mr = state[2]
+    cr =state[3]
+    boat = state[4]
 
     #store next state in the list
     nextState=[]
 
     for move in moves:
-      m=move[0]
-      c=move[1]
+      m = move[0]
+      c = move[1]
 
-      if boat=="L":
+      if boat == "L":
         #move people from left to right
-        new_state=(ml-m , cl-c, mr+m, cr+c, "R")
+        new_state=(ml - m , cl - c, mr + m, cr + c, "R")
       else:
         #move people from roght to left
-        new_state=(ml+m,cl+c,mr-m,cr-c,"L")
+        new_state=(ml + m, cl + c, mr - m, cr - c,"L")
 
-      #only accept the move if move is valid
+      #only accpet the move if move is valid
       if stateFollow(new_state):
         nextState.append((new_state, move))
 
@@ -78,25 +82,28 @@ def findLegal(state):
 def astar(start, heuristic):
     #counter breaks ties between equal costs so heapq never compares paths
     counter = 0
-    waiting = [(heuristic(start), counter, 0, [start])]
+    waiting = [(heuristic(start), counter, 0, [start])] # priority queue with (f, counter, g, path)
     visited = {}
     expansion = 0
     while waiting:
-        f, _, current_cost, path = heapq.heappop(waiting)
-        current = path[-1]
+        f, _, current_cost, path = heapq.heappop(waiting) #pop the path with the lowest f value
+        current = path[-1] #current state is the last state in the path
 
         #skip if we already reached this state more cheaply
         if current in visited and visited[current] <= current_cost:
             continue
         visited[current] = current_cost
 
+        #check if goal state is reached
         if current[0] == 0 and current[1] == 0:
             return path, current_cost, expansion
-
+        
+        #increment the expansion counter
         expansion += 1
 
+        #for each legal next state, calculate the cost and add it to the waiting list
         for new_state, move in findLegal(current):
-            new_cost = current_cost + action_cost(move, current[4], "A")  # Assuming cost model A for A* search
+            new_cost = current_cost + action_cost(move, current[4], "A")  #Assuming cost model A for A* search
 
             if new_state in visited and visited[new_state] <= new_cost:
                 continue
@@ -104,28 +111,28 @@ def astar(start, heuristic):
             new_path = path.copy()
             new_path.append(new_state)
             counter += 1
-            heapq.heappush(waiting, (new_cost + heuristic(new_state), counter, new_cost, new_path))
+            heapq.heappush(waiting, (new_cost + heuristic(new_state), counter, new_cost, new_path)) #push the new path with its f value into the priority queue
     return None, None, expansion
 
 #heuristics
 def heuristic1(state):
-    ml=state[0]
-    cl=state[1]
+    ml = state[0]
+    cl = state[1]
 
     #heuristic: Passenger Weight Remaining
     return ((2 * ml) + cl)
 
 def heuristic2(state):
-    ml=state[0]
-    cl=state[1]
+    ml = state[0]
+    cl = state[1]
 
     #heuristic: Trip-Packing Lower Bound
     return math.ceil((((2 * ml) + cl)/3))
 
 def heuristic3(state):
-    ml=state[0]
-    cl=state[1]
-    boat=state[4]
+    ml = state[0]
+    cl = state[1]
+    boat = state[4]
 
     #heuristic3: Weight remaining and the forced return trips
     people_remaining = ml + cl
@@ -138,7 +145,7 @@ def heuristic3(state):
     return (2 * ml) + cl + 2 * returns
 
 #method for printing astar result
-def astar_result_print(heading,path,cost,expansion):
+def astar_result_print(heading, path, cost, expansion):
   print(heading)
   if path is None:
     print("Solution Path: No solution")
@@ -149,18 +156,17 @@ def astar_result_print(heading,path,cost,expansion):
   print("Number of node expansions =", expansion)
   print()
 
-
 with open("input.txt") as file:
   line=file.readline()
   data=line.strip().split(",")
 
-ml=int(data[0])
-cl=int(data[1])
-mr=int(data[2])
-cr=int(data[3])
-boat=data[4].strip()
+ml = int(data[0])
+cl = int(data[1])
+mr = int(data[2])
+cr = int(data[3])
+boat = data[4].strip()
 
-start=(ml,cl,mr,cr,boat)
+start=(ml, cl, mr, cr, boat)
 
 for name, heuristic in [("Heuristic 1", heuristic1), 
                         ("Heuristic 2", heuristic2), 

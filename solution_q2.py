@@ -1,4 +1,9 @@
-#UNIFORM COST SEARCH WITH NON-UNIFORM ACTION COSTS
+#AZHAR ABBAS SYED, ARIANA SOOKOO
+#CMPSC 442- Artificial Intelligence
+#Project 1
+#----------------------------------------------------------------------------
+#QUESTION 2: UNIFORM COST SEARCH WITH NON-UNIFORM ACTION COSTS
+
 #Extend the solution to support different cost models for the river crossing puzzle.
 
 #imports
@@ -22,16 +27,16 @@ def action_cost(move, boat, cost_model):
 #check whether state follows puzzle rules
 def stateFollow(state):
     #missionary on left
-    ml=state[0]
+    ml = state[0]
     #cannibals on left
-    cl=state[1]
+    cl = state[1]
     #missionary on right
-    mr=state[2]
+    mr = state[2]
     #cannibals on right
-    cr=state[3]
+    cr =state[3]
 
     #check if each count is between 0 and 3
-    for i in (ml,cl,mr,cr):
+    for i in (ml, cl, mr, cr):
         if i < 0 or i > 3:
             return False
 
@@ -45,34 +50,33 @@ def stateFollow(state):
 
     return True  #if everything is correct
 
-#Find the state with one legal move
+#find the state with one legal move
 def findLegal(state):
-    ml=state[0]
-    cl=state[1]
-    mr=state[2]
-    cr=state[3]
-    boat=state[4]
+    ml = state[0]
+    cl = state[1]
+    mr = state[2]
+    cr =state[3]
+    boat = state[4]
 
     #store next state in the list
     nextState=[]
 
     for move in moves:
-      m=move[0]
-      c=move[1]
+      m = move[0]
+      c = move[1]
 
-      if boat=="L":
+      if boat == "L":
         #move people from left to right
-        new_state=(ml-m , cl-c, mr+m, cr+c, "R")
+        new_state=(ml - m , cl - c, mr + m, cr + c, "R")
       else:
         #move people from roght to left
-        new_state=(ml+m,cl+c,mr-m,cr-c,"L")
+        new_state=(ml + m, cl + c, mr - m, cr - c,"L")
 
       #only accpet the move if move is valid
       if stateFollow(new_state):
         nextState.append((new_state, move))
 
     return nextState
-
 
 #ucs function
 def ucs(start, cost_model):
@@ -81,8 +85,8 @@ def ucs(start, cost_model):
     waiting = [(0, counter, [start])]
     visited = {}
     expansion = 0
-    while waiting:
-        current_cost, _, path = heapq.heappop(waiting)
+    while waiting: # while there are still paths to explore
+        current_cost, _, path = heapq.heappop(waiting) # pop the path with the lowest cost
         current = path[-1]
 
         #skip if we already reached this state more cheaply
@@ -90,12 +94,15 @@ def ucs(start, cost_model):
             continue
         visited[current] = current_cost
 
+        #check if we reached the goal state
         if current[0] == 0 and current[1] == 0:
             return path, current_cost, expansion
 
+        #increment the expansion counter
         expansion += 1
         next_states = findLegal(current)
 
+        #for each legal next state, calculate the cost and add it to the waiting list
         for new_state, move in next_states:
             cost = action_cost(move, current[4], cost_model)
             new_cost = current_cost + cost
@@ -103,28 +110,11 @@ def ucs(start, cost_model):
             new_path = path.copy()
             new_path.append(new_state)
             counter += 1
-            heapq.heappush(waiting, (new_cost, counter, new_path))
+            heapq.heappush(waiting, (new_cost, counter, new_path)) #push the new path with its cost into the priority queue
     return None, None, expansion
 
-
-#method for printing bfs and dfs result
-def result_print(heading,path,expansion):
-  print(heading)
-  if path is None:
-    print("Solution Path: No solution")
-    print("Total cost = N/A")
-  else:
-    print("Solution Path:")
-    for i in path:
-        print(i)
-
-    print("Total cost = ", len(path) -1)
-
-  print("Number of node expansions=", expansion)
-  print()
-
 #method for printing UCS result
-def ucs_result_print(heading,path,cost,expansion):
+def ucs_result_print(heading, path, cost, expansion):
   print(heading)
   if path is None:
     print("Solution Path: No solution")
@@ -139,18 +129,18 @@ def ucs_result_print(heading,path,cost,expansion):
   print("Number of node expansions =", expansion)
   print()
 
-
+# read input from file
 with open("input.txt") as file:
-  line=file.readline()
-  data=line.strip().split(",")
+  line = file.readline()
+  data = line.strip().split(",")
 
-ml=int(data[0])
-cl=int(data[1])
-mr=int(data[2])
-cr=int(data[3])
-boat=data[4].strip()
+ml = int(data[0])
+cl = int(data[1])
+mr = int(data[2])
+cr = int(data[3])
+boat = data[4].strip()
 
-start=(ml,cl,mr,cr,boat)
+start=(ml, cl, mr, cr, boat)
 
 result_A = ucs(start, "A")
 
@@ -169,4 +159,3 @@ ucs_result_print(
    result_B[1],
    result_B[2]
    )
-
