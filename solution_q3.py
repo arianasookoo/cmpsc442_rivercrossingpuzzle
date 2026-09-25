@@ -129,21 +129,6 @@ def heuristic2(state):
     #heuristic: Trip-Packing Lower Bound
     return math.ceil((((2 * ml) + cl)/3))
 
-def heuristic3(state):
-    ml = state[0]
-    cl = state[1]
-    boat = state[4]
-
-    #heuristic3: Weight remaining and the forced return trips
-    people_remaining = ml + cl
-    if people_remaining == 0:
-        returns = 0
-    elif boat == "L":
-        returns = max(0, people_remaining - 2)
-    else:
-        returns = max(1, people_remaining)
-    return (2 * ml) + cl + 2 * returns
-
 #method for printing astar result
 def astar_result_print(heading, path, cost, expansion):
   print(heading)
