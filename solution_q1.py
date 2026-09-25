@@ -158,3 +158,5 @@ result2=search(start,"BFS")
 
 result_print("The solution of Q1.1.b (BFS) is:",result2[0],result2[1])
 
+
+x

@@ -1,6 +1,9 @@
 #UNIFORM COST SEARCH WITH NON-UNIFORM ACTION COSTS
 #Extend the solution to support different cost models for the river crossing puzzle.
 
+#imports
+import heapq
+
 moves=[(1,0), (0,1) , (2,0), (1,1), (0,2)]  # no (0,0) because boat cannot be empty
 
 def action_cost(move, boat, cost_model):
@@ -32,15 +35,15 @@ def stateFollow(state):
         if i < 0 or i > 3:
             return False
 
-        #left bank will be false of cannibals outnumber missionary
-        if ml > 0 and cl > ml:
-            return False
+    #left bank will be false of cannibals outnumber missionary
+    if ml > 0 and cl > ml:
+        return False
 
-        #same rule to check on right
-        if mr > 0 and cr > mr:
-            return False
+    #same rule to check on right
+    if mr > 0 and cr > mr:
+        return False
 
-        return True  #if everything is correct
+    return True  #if everything is correct
 
 #Find the state with one legal move
 def findLegal(state):
@@ -73,32 +76,36 @@ def findLegal(state):
 
 #ucs function
 def ucs(start, cost_model):
-    waiting = [(0, [start])]
+    #counter breaks ties between equal costs so heapq never compares paths
+    counter = 0
+    waiting = [(0, counter, [start])]
     visited = {}
     expansion = 0
     while waiting:
-       waiting.sort(key=lambda x: x[0])
-       current_cost, path = waiting.pop(0)
-       current = path[-1]
+        current_cost, _, path = heapq.heappop(waiting)
+        current = path[-1]
 
-       if current in visited and visited[current] <= current_cost:
-           continue
-       visited[current] = current_cost
+        #skip if we already reached this state more cheaply
+        if current in visited and visited[current] <= current_cost:
+            continue
+        visited[current] = current_cost
 
-       if current[0] == 0 and current[1] == 0:
-           return path, current_cost, expansion
+        if current[0] == 0 and current[1] == 0:
+            return path, current_cost, expansion
 
-       expansion += 1
-       next_states = findLegal(current)
+        expansion += 1
+        next_states = findLegal(current)
 
-       for new_state, move in next_states:
-        cost = action_cost(move, current[4], cost_model)
-        new_cost = current_cost + cost
+        for new_state, move in next_states:
+            cost = action_cost(move, current[4], cost_model)
+            new_cost = current_cost + cost
 
-        new_path = path.copy()
-        new_path.append(new_state)
-        waiting.append((new_cost, new_path))
+            new_path = path.copy()
+            new_path.append(new_state)
+            counter += 1
+            heapq.heappush(waiting, (new_cost, counter, new_path))
     return None, None, expansion
+
 
 #method for printing bfs and dfs result
 def result_print(heading,path,expansion):
@@ -127,9 +134,9 @@ def ucs_result_print(heading,path,cost,expansion):
     for i in path:
         print(i)
 
-    print("Total cost = ", cost)
+    print("Total cost =", cost)
 
-  print("Number of node expansions=", expansion)
+  print("Number of node expansions =", expansion)
   print()
 
 
@@ -148,7 +155,7 @@ start=(ml,cl,mr,cr,boat)
 result_A = ucs(start, "A")
 
 ucs_result_print(
-   "The solution of Q2.1.c (UCS with cost model A) is:",
+   "The solution of Q2.1 (UCS with cost model A) is:",
    result_A[0],
    result_A[1],
    result_A[2]
@@ -157,10 +164,9 @@ ucs_result_print(
 result_B = ucs(start, "B")
 
 ucs_result_print(
-   "The solution of Q2.1.c (UCS with cost model B) is:",
+   "The solution of Q2.2 (UCS with cost model B) is:",
    result_B[0],
    result_B[1],
    result_B[2]
    )
-result_A = ucs(start, "A")
 

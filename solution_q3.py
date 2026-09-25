@@ -1,0 +1,192 @@
+#UNIFORM COST SEARCH WITH NON-UNIFORM ACTION COSTS
+#Extend the solution to support different cost models for the river crossing puzzle.
+
+#imports
+import heapq
+
+moves=[(1,0), (0,1) , (2,0), (1,1), (0,2)]  # no (0,0) because boat cannot be empty
+
+def action_cost(move, boat, cost_model):
+    m = move [0]
+    c = move[1]
+
+    if cost_model == "A":
+        return ((2 * m) + c)
+    
+    elif cost_model == "B":
+        if boat == "L":
+           return 2 
+        else:
+           return 1
+        
+#check whether state follows puzzle rules
+def stateFollow(state):
+    #missionary on left
+    ml=state[0]
+    #cannibals on left
+    cl=state[1]
+    #missionary on right
+    mr=state[2]
+    #cannibals on right
+    cr=state[3]
+
+    #check if each count is between 0 and 3
+    for i in (ml,cl,mr,cr):
+        if i < 0 or i > 3:
+            return False
+
+    #left bank will be false of cannibals outnumber missionary
+    if ml > 0 and cl > ml:
+        return False
+
+    #same rule to check on right
+    if mr > 0 and cr > mr:
+        return False
+
+    return True  #if everything is correct
+
+#Find the state with one legal move
+def findLegal(state):
+    ml=state[0]
+    cl=state[1]
+    mr=state[2]
+    cr=state[3]
+    boat=state[4]
+
+    #store next state in the list
+    nextState=[]
+
+    for move in moves:
+      m=move[0]
+      c=move[1]
+
+      if boat=="L":
+        #move people from left to right
+        new_state=(ml-m , cl-c, mr+m, cr+c, "R")
+      else:
+        #move people from roght to left
+        new_state=(ml+m,cl+c,mr-m,cr-c,"L")
+
+      #only accpet the move if move is valid
+      if stateFollow(new_state):
+        nextState.append((new_state, move))
+
+    return nextState
+
+
+#ucs function
+def ucs(start, cost_model):
+    #counter breaks ties between equal costs so heapq never compares paths
+    counter = 0
+    waiting = [(0, counter, [start])]
+    visited = {}
+    expansion = 0
+    while waiting:
+        current_cost, _, path = heapq.heappop(waiting)
+        current = path[-1]
+
+        #skip if we already reached this state more cheaply
+        if current in visited and visited[current] <= current_cost:
+            continue
+        visited[current] = current_cost
+
+        if current[0] == 0 and current[1] == 0:
+            return path, current_cost, expansion
+
+        expansion += 1
+        next_states = findLegal(current)
+
+        for new_state, move in next_states:
+            cost = action_cost(move, current[4], cost_model)
+            new_cost = current_cost + cost
+
+            new_path = path.copy()
+            new_path.append(new_state)
+            counter += 1
+            heapq.heappush(waiting, (new_cost, counter, new_path))
+    return None, None, expansion
+
+#heuristic1
+def heuristic1(state):
+    ml=state[0]
+    cl=state[1]
+    mr=state[2]
+    cr=state[3]
+    boat=state[4]
+
+    #heuristic: weighted rowing cost
+    return ((2 * ml) + cl)
+
+def heuristic2(state):
+    ml=state[0]
+    cl=state[1]
+    mr=state[2]
+    cr=state[3]
+    boat=state[4]
+
+    #heuristic: number of people on the left bank
+    return int((((2 * ml) + cl)/3))
+
+#method for printing bfs and dfs result
+def result_print(heading,path,expansion):
+  print(heading)
+  if path is None:
+    print("Solution Path: No solution")
+    print("Total cost = N/A")
+  else:
+    print("Solution Path:")
+    for i in path:
+        print(i)
+
+    print("Total cost = ", len(path) -1)
+
+  print("Number of node expansions=", expansion)
+  print()
+
+#method for printing UCS result
+def ucs_result_print(heading,path,cost,expansion):
+  print(heading)
+  if path is None:
+    print("Solution Path: No solution")
+    print("Total cost = N/A")
+  else:
+    print("Solution Path:")
+    for i in path:
+        print(i)
+
+    print("Total cost =", cost)
+
+  print("Number of node expansions =", expansion)
+  print()
+
+
+with open("input.txt") as file:
+  line=file.readline()
+  data=line.strip().split(",")
+
+ml=int(data[0])
+cl=int(data[1])
+mr=int(data[2])
+cr=int(data[3])
+boat=data[4].strip()
+
+start=(ml,cl,mr,cr,boat)
+
+result_A = ucs(start, "A")
+
+ucs_result_print(
+   "The solution of Q2.1 (UCS with cost model A) is:",
+   result_A[0],
+   result_A[1],
+   result_A[2]
+   )
+
+result_B = ucs(start, "B")
+
+ucs_result_print(
+   "The solution of Q2.2 (UCS with cost model B) is:",
+   result_B[0],
+   result_B[1],
+   result_B[2]
+   )
+
