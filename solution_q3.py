@@ -74,39 +74,6 @@ def findLegal(state):
 
     return nextState
 
-
-#ucs function
-def ucs(start, cost_model):
-    #counter breaks ties between equal costs so heapq never compares paths
-    counter = 0
-    waiting = [(0, counter, [start])]
-    visited = {}
-    expansion = 0
-    while waiting:
-        current_cost, _, path = heapq.heappop(waiting)
-        current = path[-1]
-
-        #skip if we already reached this state more cheaply
-        if current in visited and visited[current] <= current_cost:
-            continue
-        visited[current] = current_cost
-
-        if current[0] == 0 and current[1] == 0:
-            return path, current_cost, expansion
-
-        expansion += 1
-        next_states = findLegal(current)
-
-        for new_state, move in next_states:
-            cost = action_cost(move, current[4], cost_model)
-            new_cost = current_cost + cost
-
-            new_path = path.copy()
-            new_path.append(new_state)
-            counter += 1
-            heapq.heappush(waiting, (new_cost, counter, new_path))
-    return None, None, expansion
-
 #astar function
 def astar(start, heuristic):
     #counter breaks ties between equal costs so heapq never compares paths
@@ -162,40 +129,23 @@ def heuristic3(state):
 
     #heuristic3: Weight remaining and the forced return trips
     people_remaining = ml + cl
-    if state[4] == "L":
-        return math.ceil((((2 * ml) + cl)/3))
+    if people_remaining == 0:
+        returns = 0
+    elif boat == "L":
+        returns = max(0, people_remaining - 2)
     else:
-        return math.ceil((((2 * ml) + cl)/3)) + 1
+        returns = max(1, people_remaining)
+    return (2 * ml) + cl + 2 * returns
 
-#method for printing bfs and dfs result
-def result_print(heading,path,expansion):
+#method for printing astar result
+def astar_result_print(heading,path,cost,expansion):
   print(heading)
   if path is None:
     print("Solution Path: No solution")
     print("Total cost = N/A")
   else:
-    print("Solution Path:")
-    for i in path:
-        print(i)
-
-    print("Total cost = ", len(path) -1)
-
-  print("Number of node expansions=", expansion)
-  print()
-
-#method for printing UCS result
-def ucs_result_print(heading,path,cost,expansion):
-  print(heading)
-  if path is None:
-    print("Solution Path: No solution")
-    print("Total cost = N/A")
-  else:
-    print("Solution Path:")
-    for i in path:
-        print(i)
-
+    print("Solution Path:", "-> ".join(str(i) for i in path))
     print("Total cost =", cost)
-
   print("Number of node expansions =", expansion)
   print()
 
@@ -212,21 +162,8 @@ boat=data[4].strip()
 
 start=(ml,cl,mr,cr,boat)
 
-result_A = ucs(start, "A")
-
-ucs_result_print(
-   "The solution of Q2.1 (UCS with cost model A) is:",
-   result_A[0],
-   result_A[1],
-   result_A[2]
-   )
-
-result_B = ucs(start, "B")
-
-ucs_result_print(
-   "The solution of Q2.2 (UCS with cost model B) is:",
-   result_B[0],
-   result_B[1],
-   result_B[2]
-   )
-
+for name, heuristic in [("Heuristic 1", heuristic1), 
+                        ("Heuristic 2", heuristic2), 
+                        ("Heuristic 3", heuristic3)]:
+    path, cost, expansion = astar(start, heuristic)
+    astar_result_print(f"The solution of Q3.2 ({name}) is:", path, cost, expansion)
