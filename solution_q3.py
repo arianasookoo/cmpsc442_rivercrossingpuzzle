@@ -78,7 +78,7 @@ def findLegal(state):
 def astar(start, heuristic):
     #counter breaks ties between equal costs so heapq never compares paths
     counter = 0
-    waiting = [(heuristic(start), counter, [start])]
+    waiting = [(heuristic(start), counter, 0, [start])]
     visited = {}
     expansion = 0
     while waiting:
