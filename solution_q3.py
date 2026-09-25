@@ -3,6 +3,7 @@
 
 #imports
 import heapq
+import math
 
 moves=[(1,0), (0,1) , (2,0), (1,1), (0,2)]  # no (0,0) because boat cannot be empty
 
@@ -12,13 +13,13 @@ def action_cost(move, boat, cost_model):
 
     if cost_model == "A":
         return ((2 * m) + c)
-    
+
     elif cost_model == "B":
         if boat == "L":
-           return 2 
+           return 2
         else:
            return 1
-        
+
 #check whether state follows puzzle rules
 def stateFollow(state):
     #missionary on left
@@ -67,7 +68,7 @@ def findLegal(state):
         #move people from roght to left
         new_state=(ml+m,cl+c,mr-m,cr-c,"L")
 
-      #only accpet the move if move is valid
+      #only accept the move if move is valid
       if stateFollow(new_state):
         nextState.append((new_state, move))
 
@@ -106,26 +107,65 @@ def ucs(start, cost_model):
             heapq.heappush(waiting, (new_cost, counter, new_path))
     return None, None, expansion
 
-#heuristic1
+#astar function
+def astar(start, heuristic):
+    #counter breaks ties between equal costs so heapq never compares paths
+    counter = 0
+    waiting = [(heuristic(start), counter, [start])]
+    visited = {}
+    expansion = 0
+    while waiting:
+        f, _, current_cost, path = heapq.heappop(waiting)
+        current = path[-1]
+
+        #skip if we already reached this state more cheaply
+        if current in visited and visited[current] <= current_cost:
+            continue
+        visited[current] = current_cost
+
+        if current[0] == 0 and current[1] == 0:
+            return path, current_cost, expansion
+
+        expansion += 1
+
+        for new_state, move in findLegal(current):
+            new_cost = current_cost + action_cost(move, current[4], "A")  # Assuming cost model A for A* search
+
+            if new_state in visited and visited[new_state] <= new_cost:
+                continue
+
+            new_path = path.copy()
+            new_path.append(new_state)
+            counter += 1
+            heapq.heappush(waiting, (new_cost + heuristic(new_state), counter, new_cost, new_path))
+    return None, None, expansion
+
+#heuristics
 def heuristic1(state):
     ml=state[0]
     cl=state[1]
-    mr=state[2]
-    cr=state[3]
-    boat=state[4]
 
-    #heuristic: weighted rowing cost
+    #heuristic: Passenger Weight Remaining
     return ((2 * ml) + cl)
 
 def heuristic2(state):
     ml=state[0]
     cl=state[1]
-    mr=state[2]
-    cr=state[3]
+
+    #heuristic: Trip-Packing Lower Bound
+    return math.ceil((((2 * ml) + cl)/3))
+
+def heuristic3(state):
+    ml=state[0]
+    cl=state[1]
     boat=state[4]
 
-    #heuristic: number of people on the left bank
-    return int((((2 * ml) + cl)/3))
+    #heuristic3: Weight remaining and the forced return trips
+    people_remaining = ml + cl
+    if state[4] == "L":
+        return math.ceil((((2 * ml) + cl)/3))
+    else:
+        return math.ceil((((2 * ml) + cl)/3)) + 1
 
 #method for printing bfs and dfs result
 def result_print(heading,path,expansion):
