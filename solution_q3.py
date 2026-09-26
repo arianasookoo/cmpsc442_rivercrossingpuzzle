@@ -8,6 +8,8 @@
 import heapq
 import math
 
+from solution_q1 import find_legal
+
 
 moves=[(1,0), (0,1) , (2,0), (1,1), (0,2)]  # no (0,0) because boat cannot be empty
 
@@ -23,9 +25,10 @@ def action_cost(move, boat, cost_model):
            return 2 
         else:
            return 1
+    return None
         
 #check whether state follows puzzle rules
-def stateFollow(state):
+def state_follow(state):
     #missionary on left
     ml = state[0]
     #cannibals on left
@@ -51,7 +54,7 @@ def stateFollow(state):
     return True  #if everything is correct
 
 #find the state with one legal move
-def findLegal(state):
+def find_legal(state):
     ml = state[0]
     cl = state[1]
     mr = state[2]
@@ -69,11 +72,11 @@ def findLegal(state):
         #move people from left to right
         new_state=(ml - m , cl - c, mr + m, cr + c, "R")
       else:
-        #move people from roght to left
+        #move people from right to left
         new_state=(ml + m, cl + c, mr - m, cr - c,"L")
 
-      #only accpet the move if move is valid
-      if stateFollow(new_state):
+      #only accept the move if move is valid
+      if state_follow(new_state):
         nextState.append((new_state, move))
 
     return nextState
@@ -82,7 +85,7 @@ def findLegal(state):
 def astar(start, heuristic):
     #counter breaks ties between equal costs so heapq never compares paths
     counter = 0
-    waiting = [(heuristic(start), counter, 0, [start])] # priority queue with (f, counter, g, path)
+    waiting = [(heuristic(start), counter, 0, [start])] #A* search requires evaluating nodes based on these values
     visited = {}
     expansion = 0
     while waiting:
@@ -98,18 +101,17 @@ def astar(start, heuristic):
         if current[0] == 0 and current[1] == 0:
             return path, current_cost, expansion
         
-        #increment the expansion counter
         expansion += 1
 
         #for each legal next state, calculate the cost and add it to the waiting list
-        for new_state, move in findLegal(current):
+        for new_state, move in find_legal(current):
             new_cost = current_cost + action_cost(move, current[4], "A")  #Assuming cost model A for A* search
 
             if new_state in visited and visited[new_state] <= new_cost:
                 continue
 
-            new_path = path.copy()
-            new_path.append(new_state)
+            new_path = path.copy() # create a copy of the current path to append the new state
+            new_path.append(new_state) # append the new state to the copied path
             counter += 1
             heapq.heappush(waiting, (new_cost + heuristic(new_state), counter, new_cost, new_path)) #push the new path with its f value into the priority queue
     return None, None, expansion

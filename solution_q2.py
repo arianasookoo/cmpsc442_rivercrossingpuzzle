@@ -23,9 +23,10 @@ def action_cost(move, boat, cost_model):
            return 2 
         else:
            return 1
+    return None
         
 #check whether state follows puzzle rules
-def stateFollow(state):
+def state_follow(state):
     #missionary on left
     ml = state[0]
     #cannibals on left
@@ -51,7 +52,7 @@ def stateFollow(state):
     return True  #if everything is correct
 
 #find the state with one legal move
-def findLegal(state):
+def find_legal(state):
     ml = state[0]
     cl = state[1]
     mr = state[2]
@@ -69,11 +70,11 @@ def findLegal(state):
         #move people from left to right
         new_state=(ml - m , cl - c, mr + m, cr + c, "R")
       else:
-        #move people from roght to left
+        #move people from right to left
         new_state=(ml + m, cl + c, mr - m, cr - c,"L")
 
-      #only accpet the move if move is valid
-      if stateFollow(new_state):
+      #only accept the move if move is valid
+      if state_follow(new_state):
         nextState.append((new_state, move))
 
     return nextState
@@ -100,15 +101,15 @@ def ucs(start, cost_model):
 
         #increment the expansion counter
         expansion += 1
-        next_states = findLegal(current)
+        next_states = find_legal(current)
 
         #for each legal next state, calculate the cost and add it to the waiting list
         for new_state, move in next_states:
             cost = action_cost(move, current[4], cost_model)
             new_cost = current_cost + cost
 
-            new_path = path.copy()
-            new_path.append(new_state)
+            new_path = path.copy() # create a copy of the current path to append the new state
+            new_path.append(new_state) # append the new state to the copied path
             counter += 1
             heapq.heappush(waiting, (new_cost, counter, new_path)) #push the new path with its cost into the priority queue
     return None, None, expansion

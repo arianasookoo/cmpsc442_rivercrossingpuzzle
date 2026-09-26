@@ -10,7 +10,7 @@
 moves=[(1,0), (0,1) , (2,0), (1,1), (0,2)]  # no (0,0) because boat cannot be empty
 
 #check whether state follows puzzle rules
-def stateFollow(state):
+def state_follow(state):
   #missionary on left
   ml=state[0]
   #cannibals on left
@@ -36,7 +36,7 @@ def stateFollow(state):
   return True  #if everything correct
 
 #find the state with one legal move
-def findLegal(state):
+def find_legal(state):
     ml = state[0]
     cl = state[1]
     mr = state[2]
@@ -57,8 +57,8 @@ def findLegal(state):
         #move people from right to left
         new_state=( ml + m, cl + c, mr - m, cr - c,"L")
 
-      #only accpet the move if move is valid
-      if stateFollow(new_state):
+      #only accept the move if move is valid
+      if state_follow(new_state):
         nextState.append(new_state)
 
     return nextState
@@ -88,7 +88,7 @@ def search(start, search_method):
       if current in visited:
         continue
 
-      #check eevryone has recahed right bank
+      #check everyone has reached right bank
       if current[0] == 0 and current[1] == 0:
         return path, expansion
 
@@ -98,7 +98,7 @@ def search(start, search_method):
       expansion = expansion + 1
 
       #check if next state valid
-      next_states = findLegal(current)
+      next_states = find_legal(current)
 
       if search_method == "DFS":
         next_states.reverse()
