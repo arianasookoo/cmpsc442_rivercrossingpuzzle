@@ -129,6 +129,19 @@ def heuristic2(state):
     #heuristic: Trip-Packing Lower Bound
     return math.ceil((((2 * ml) + cl)/3))
 
+def heuristic3(state):
+    ml = state[0]
+    cl = state[1]
+    boat = state[4]
+
+    #heuristic: Passenger Weight Remaining considering boat position
+    weight = (2 * ml) + cl # total weight of passengers on the left bank
+    n = ml + cl
+
+    if boat == "R" and n > 0: # if the boat is on the right bank and there are passengers on the left bank, add 2 to the weight to account for the boat's return trip
+       return weight + 2
+    return weight
+
 #method for printing astar result
 def astar_result_print(heading, path, cost, expansion):
   print(heading)
@@ -136,8 +149,12 @@ def astar_result_print(heading, path, cost, expansion):
     print("Solution Path: No solution")
     print("Total cost = N/A")
   else:
-    print("Solution Path:", "-> ".join(str(i) for i in path))
+    print("Solution Path:")
+    for i in path:
+        print(i)
+
     print("Total cost =", cost)
+
   print("Number of node expansions =", expansion)
   print()
 
